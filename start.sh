@@ -1,7 +1,13 @@
 #!/bin/sh
 
+source functions.sh
+
 mkdir -p /var/lib/varnish/`hostname` && chown nobody /var/lib/varnish/`hostname`
 
+if [ ! -z "${VARNISH_PEER_URL}" ]; then
+  get_peers
+  update_peers
+fi
 
 if [ -f "$VARNISH_GOMPLATE_FILE" -a -r "$VARNISH_GOMPLATE_FILE" ]; then
   VARNISH_CONFIG_FILE='/etc/varnish/default.vcl'
@@ -17,10 +23,7 @@ else
 fi
 sleep 1
 
-until (varnishtop -1 >/dev/null); do
-  echo "start.sh: Waiting for varnish to start"
-  sleep 5
-done
+wait_for_varnish_start
 
 if [[ ! -z $VARNISH_DNS_REFRESH ]]; then
   ./dnscheck.sh &

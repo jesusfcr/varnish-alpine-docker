@@ -23,7 +23,7 @@ RUN tar -zxvf prometheus_varnish_exporter.linux-386.tar.gz && mv ./prometheus_va
 # Make sure we can run this binary
 RUN /prometheus_varnish_exporter -version
 
-FROM hairyhenderson/gomplate as gomplate
+FROM hairyhenderson/gomplate:v2.4.0 as gomplate
 
 FROM alpine:3.6
 MAINTAINER  Frode Egeland <egeland@gmail.com>
@@ -39,6 +39,7 @@ COPY --from=vmod-builder /usr/lib/varnish/vmods/libvmod_querystring.so /usr/lib/
 COPY --from=gomplate /gomplate /usr/local/bin/gomplate
 COPY --from=prometheus-exporter-builder /prometheus_varnish_exporter /usr/local/bin/prometheus_varnish_exporter
 
-ADD *.sh /
+COPY *.sh /
+COPY *.gotpl /etc/varnish/
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/start.sh"]

@@ -1,0 +1,15 @@
+vcl 4.0;
+import directors;
+
+{{- range ( datasource "peers" ).peers }}
+backend peer{{ crypto.SHA1 . }} {
+  .host = "{{ . }}";
+}
+{{ end -}}
+
+sub peer_init {
+  new peers = directors.round_robin();
+{{- range ( datasource "peers" ).peers }}
+  peers.add_backend(peer{{ crypto.SHA1 . }});
+{{ end -}}
+}
